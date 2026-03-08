@@ -1,0 +1,22 @@
+{
+  "players": {
+    "0x3e8fea4049e4e1559863ac4e151a9af2201ffef8": {
+      "address": "0x3e8fea4049e4e1559863ac4e151a9af2201ffef8",
+      "name": "小青龙",
+      "level": 1,
+      "experience": 0,
+      "expToNextLevel": 100,
+      "totalExp": 0,
+      "dailyDividend": 0,
+      "totalEarned": 0,
+      "todayFeedCount": 0,
+      "lastFeedDate": "",
+      "createdAt": "2026-03-08T07:46:41.182Z",
+      "updatedAt": "2026-03-08T07:46:41.182Z"
+    }
+  },
+  "pool": {
+    "totalAmount": 0,
+    "lastDividendTime": "2024-01-01T00:00:00.000Z"
+  }
+}
