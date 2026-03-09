@@ -3,11 +3,21 @@ import cors from 'cors'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DATA_FILE = path.join(__dirname, 'data.json')
 
 const app = express()
+const httpServer = createServer(app)
+const io = new Server(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+})
+
 const PORT = process.env.PORT || 3001
 
 app.use(cors())
@@ -49,10 +59,36 @@ function loadData() {
 // 保存数据
 function saveData() {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2))
+  // 广播数据更新给所有客户端
+  io.emit('dataUpdated', getLeaderboardData())
 }
 
 // 初始化
 loadData()
+
+// 获取排行榜数据（供 WebSocket 使用）
+function getLeaderboardData() {
+  const players = Object.values(data.players)
+    .sort((a, b) => b.totalExp - a.totalExp)
+    .slice(0, 100)
+    .map(p => ({
+      address: p.address,
+      name: p.name,
+      level: p.level,
+      totalExp: p.totalExp
+    }))
+  
+  const totalPool = data.pool.totalAmount || 0
+  const nextDividend = Math.floor(totalPool * CONFIG.dividendPercent / 100)
+  
+  return {
+    players,
+    poolInfo: {
+      totalPool,
+      nextDividend
+    }
+  }
+}
 
 // 根路由 - Railway 健康检查
 app.get('/', (req, res) => {
@@ -322,6 +358,20 @@ app.post('/api/claim', (req, res) => {
   }
 })
 
-app.listen(PORT, () => {
-  console.log(`🦞 龙虾大亨服务器运行在 http://localhost:${PORT}`)
+// WebSocket 连接处理
+io.on('connection', (socket) => {
+  console.log('客户端连接:', socket.id)
+  
+  // 发送当前数据给新连接的客户端
+  socket.emit('initData', getLeaderboardData())
+  
+  socket.on('disconnect', () => {
+    console.log('客户端断开:', socket.id)
+  })
+})
+
+// 使用 httpServer 启动服务器（支持 WebSocket）
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`🦞 龙虾大亨服务器运行在 http://0.0.0.0:${PORT}`)
+  console.log(`🔌 WebSocket 已启用`)
 })
