@@ -5,6 +5,6 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "cd server && npm start"
+    "runCommand": "cd server && node server.js"
   }
 }
