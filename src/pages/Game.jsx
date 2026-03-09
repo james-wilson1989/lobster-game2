@@ -1,23 +1,46 @@
 import { useState, useEffect } from 'react'
-import { useWallet } from '../wallet'
+import { useAccount, useWriteContract, useConnect } from 'wagmi'
+import { parseEther } from 'viem'
+import { erc20Abi } from 'viem'
+import { API_BASE } from '../config'
 
-const API_BASE = 'http://localhost:3001'
-
-const CONFIG = {
-  minFeed: 1,
-  maxFeed: 100,
-  dailyLimit: 10,
-  expPerToken: 10,
+// 从运行时配置或环境变量读取配置
+// 部署方式1: 自有服务器 → 修改 dist/config.js
+// 部署方式2: Vercel/Netlify → 在后台设置环境变量
+const getConfig = () => {
+  const defaultConfig = {
+    minFeed: 1,
+    maxFeed: 100,
+    dailyLimit: 10,
+    expPerToken: 10,
+    developerAddress: '0x01db37579e55ce13f4504019025e36047bdad845',
+    tokenAddress: ''
+  }
+  
+  // 优先使用运行时配置（window.GAME_CONFIG）
+  if (typeof window !== 'undefined' && window.GAME_CONFIG) {
+    return { ...defaultConfig, ...window.GAME_CONFIG }
+  }
+  
+  // 其次使用构建时环境变量（Vite）
+  return {
+    ...defaultConfig,
+    tokenAddress: import.meta.env.VITE_TOKEN_ADDRESS || ''
+  }
 }
 
+const CONFIG = getConfig()
+
 export default function Game() {
-  const { address, isConnected, connect } = useWallet()
+  const { address, isConnected } = useAccount()
+  const { connectAsync } = useConnect()
+  const { writeContractAsync } = useWriteContract()
   const [player, setPlayer] = useState(null)
   const [loading, setLoading] = useState(true)
   const [feeding, setFeeding] = useState(false)
   const [feedAmount, setFeedAmount] = useState(1)
   const [status, setStatus] = useState('')
-  const [tokenAddress, setTokenAddress] = useState('')
+  const [tokenAddress, setTokenAddress] = useState(CONFIG.tokenAddress)
 
   // 加载玩家数据
   useEffect(() => {
@@ -70,6 +93,24 @@ export default function Game() {
     setStatus('正在喂养...')
 
     try {
+      // 第一步：玩家转账代币到创始人钱包
+      setStatus('正在转账代币到创始人钱包...')
+      try {
+        await writeContractAsync({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'transfer',
+          args: [CONFIG.developerAddress, parseEther(feedAmount.toString())]
+        })
+      } catch (transferError) {
+        console.error('代币转账失败:', transferError)
+        setStatus('代币转账失败，请确保有足够的代币授权')
+        setFeeding(false)
+        return
+      }
+
+      // 第二步：调用后端API更新游戏数据
+      setStatus('正在更新游戏数据...')
       const res = await fetch(`${API_BASE}/api/feed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,7 +119,7 @@ export default function Game() {
       const data = await res.json()
       if (data.success) {
         setPlayer(data.data.player)
-        setStatus(`喂养成功！+${feedAmount * CONFIG.expPerToken} 经验`)
+        setStatus(`喂养成功！+${feedAmount * CONFIG.expPerToken} 经验 (已发送到创始人钱包)`)
       } else {
         setStatus(data.message || '喂养失败')
       }
@@ -104,7 +145,7 @@ export default function Game() {
         <div className="text-6xl mb-6">🔒</div>
         <h2 className="text-3xl text-white font-bold mb-4">请先连接钱包</h2>
         <p className="text-gray-400 mb-6">连接钱包后可开始养殖你的龙虾</p>
-        <button onClick={connect} className="glass-button gold-button inline-block text-lg px-8 py-3">
+        <button onClick={() => connectAsync({ connector: window.ethereum })} className="glass-button gold-button inline-block text-lg px-8 py-3">
           连接钱包
         </button>
       </div>
@@ -193,19 +234,38 @@ export default function Game() {
                     placeholder="0x..."
                     value={tokenAddress}
                     onChange={(e) => setTokenAddress(e.target.value)}
-                    className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white text-sm font-mono"
+                    disabled={!!CONFIG.tokenAddress}  // 如果环境变量已配置，则禁用输入
+                    className={`flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white text-sm font-mono ${CONFIG.tokenAddress ? 'opacity-60' : ''}`}
                   />
                 </div>
-                <p className="text-gray-500 text-xs mt-2">
-                  输入你要使用的代币合约地址 (例如 USDT, USDC 等)
-                </p>
+                {CONFIG.tokenAddress ? (
+                  <p className="text-green-400 text-xs mt-2">
+                    ✓ 已配置代币合约（通过环境变量）
+                  </p>
+                ) : (
+                  <p className="text-gray-500 text-xs mt-2">
+                    输入你要使用的代币合约地址 (例如 USDT, USDC 等)
+                  </p>
+                )}
               </div>
 
               {tokenAddress && (
                 <div className="bg-white/5 p-3 rounded-lg">
                   <span className="text-green-400">✓ 代币已设置</span>
+                  <div className="text-gray-400 text-xs mt-1 font-mono break-all">{tokenAddress}</div>
                 </div>
               )}
+
+              {/* 创始人钱包地址显示 */}
+              <div className="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-lg mt-3">
+                <div className="text-yellow-400 text-sm font-bold mb-1">📍 收益接收地址:</div>
+                <div className="text-gray-300 text-xs font-mono break-all">
+                  {CONFIG.developerAddress}
+                </div>
+                <p className="text-gray-500 text-xs mt-1">
+                  喂养代币将直接发送到此地址
+                </p>
+              </div>
             </div>
 
             {/* 喂养区域 */}

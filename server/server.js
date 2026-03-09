@@ -54,6 +54,11 @@ function saveData() {
 // 初始化
 loadData()
 
+// 根路由 - Railway 健康检查
+app.get('/', (req, res) => {
+  res.send('🦞 龙虾服务器运行中')
+})
+
 // API: 获取全局统计
 app.get('/api/stats', (req, res) => {
   try {

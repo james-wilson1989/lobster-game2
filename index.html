@@ -7,6 +7,14 @@
     <title>龙虾大亨 - 多人在线养殖</title>
   </head>
   <body>
+    <!-- 运行时配置文件：部署后可修改 dist/config.js -->
+    <script src="/config.js"></script>
+    <script>
+      // 默认配置（如果 config.js 不存在时使用）
+      window.GAME_CONFIG = window.GAME_CONFIG || {
+        tokenAddress: ''
+      };
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

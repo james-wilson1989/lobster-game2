@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useWallet } from '../wallet'
-
-const API_BASE = 'http://localhost:3001'
+import { useAccount } from 'wagmi'
+import { API_BASE } from '../config'
 
 const CONFIG = {
   topN: 5,
@@ -9,7 +8,7 @@ const CONFIG = {
 }
 
 export default function Leaderboard() {
-  const { address, isConnected } = useWallet()
+  const { address, isConnected } = useAccount()
   const [players, setPlayers] = useState([])
   const [loading, setLoading] = useState(true)
   const [poolInfo, setPoolInfo] = useState({ totalPool: 0, nextDividend: 0 })

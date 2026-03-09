@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { useWallet } from '../wallet'
+import { useAccount, useConnect } from 'wagmi'
 
 export default function Home() {
-  const { address, isConnected, connect } = useWallet()
+  const { address, isConnected } = useAccount()
+  const { connectAsync } = useConnect()
 
   const formatAddress = (addr) => `${addr?.slice(0, 6)}...${addr?.slice(-4)}`
 
@@ -32,7 +33,7 @@ export default function Home() {
         ) : (
           <div className="glass-card p-8 max-w-md mx-auto">
             <h2 className="text-2xl text-white mb-6">立即开始游戏</h2>
-            <button onClick={connect} className="glass-button gold-button w-full text-lg py-4">
+            <button onClick={() => connectAsync({ connector: window.ethereum })} className="glass-button gold-button w-full text-lg py-4">
               🦊 连接 MetaMask 钱包
             </button>
             <p className="text-gray-400 text-sm mt-4">请安装 MetaMask 钱包插件</p>

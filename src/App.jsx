@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
-import { WalletProvider } from './wallet'
+import { WagmiProvider } from 'wagmi'
+import { config as wagmiConfig } from './wagmi'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Game from './pages/Game'
@@ -7,7 +8,7 @@ import Leaderboard from './pages/Leaderboard'
 
 export default function App() {
   return (
-    <WalletProvider>
+    <WagmiProvider config={wagmiConfig}>
       <div className="min-h-screen">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
@@ -18,6 +19,6 @@ export default function App() {
           </Routes>
         </div>
       </div>
-    </WalletProvider>
+    </WagmiProvider>
   )
 }

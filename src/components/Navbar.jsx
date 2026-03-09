@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useWallet } from '../wallet'
+import { useAccount } from 'wagmi'
 
 export default function Navbar() {
-  const { address, isConnected } = useWallet()
+  const { address, isConnected } = useAccount()
   const location = useLocation()
 
   const formatAddress = (addr) => addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : ''
