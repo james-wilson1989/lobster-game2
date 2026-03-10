@@ -1,12 +1,33 @@
+import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { WagmiProvider } from 'wagmi'
-import { config as wagmiConfig } from './wagmi'
+import BrowserOnly from './components/BrowserOnly'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import Game from './pages/Game'
 import Leaderboard from './pages/Leaderboard'
 
-export default function App() {
+function AppContent() {
+  const [WagmiProvider, setWagmiProvider] = useState(null)
+  const [wagmiConfig, setWagmiConfig] = useState(null)
+
+  useEffect(() => {
+    Promise.all([
+      import('wagmi'),
+      import('./wagmi')
+    ]).then(([{ WagmiProvider }, { config }]) => {
+      setWagmiProvider(() => WagmiProvider)
+      setWagmiConfig(config)
+    })
+  }, [])
+
+  if (!WagmiProvider || !wagmiConfig) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+        <div className="text-white text-xl">加载中...</div>
+      </div>
+    )
+  }
+
   return (
     <WagmiProvider config={wagmiConfig}>
       <div className="min-h-screen">
@@ -20,5 +41,13 @@ export default function App() {
         </div>
       </div>
     </WagmiProvider>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserOnly fallback={<div className="min-h-screen bg-gradient-to-br from-blue-400 to-purple-500" />}>
+      <AppContent />
+    </BrowserOnly>
   )
 }

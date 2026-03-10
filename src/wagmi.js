@@ -14,6 +14,14 @@ export const config = {
   apiBase: import.meta.env.VITE_API_BASE || 'http://localhost:3001'
 }
 
+// 延迟创建storage，只在浏览器环境执行
+const getStorage = () => {
+  if (typeof window !== 'undefined') {
+    return createStorage({ storage: window.localStorage })
+  }
+  return undefined
+}
+
 export const wagmiConfig = createConfig({
   chains: [mainnet, bsc, bscTestnet],
   connectors: [injected()],
@@ -22,7 +30,7 @@ export const wagmiConfig = createConfig({
     [bsc.id]: http(),
     [bscTestnet.id]: http(),
   },
-  storage: createStorage({ storage: window?.localStorage }),
+  storage: getStorage(),
 })
 
 export { mainnet, bsc, bscTestnet } from 'wagmi/chains'
