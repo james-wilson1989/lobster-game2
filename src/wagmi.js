@@ -11,7 +11,7 @@ export const config = {
   expPerToken: 10,
   topN: 5,
   dividendPercent: 10,
-  apiBase: 'http://localhost:3001'
+  apiBase: import.meta.env.VITE_API_BASE || 'http://localhost:3001'
 }
 
 export const wagmiConfig = createConfig({

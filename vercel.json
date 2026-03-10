@@ -10,5 +10,8 @@
   ],
   "env": {
     "VITE_API_BASE": "http://106.55.203.204:3001"
+  },
+  "github": {
+    "silent": true
   }
 }

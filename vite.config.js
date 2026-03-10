@@ -8,7 +8,15 @@ export default defineConfig({
     port: 5173,
     host: true
   },
+  build: {
+    ssr: false,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
+      }
+    }
+  },
   ssr: {
-    noExternal: ['@wagmi/core', 'viem', 'framer-motion']
+    noExternal: ['@wagmi/core', 'viem', 'framer-motion', 'wagmi']
   }
 })
