@@ -7,5 +7,8 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true
+  },
+  ssr: {
+    noExternal: ['@wagmi/core', 'viem', 'framer-motion']
   }
 })
