@@ -1,17 +1,21 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
-  "rewrites": [
+  "installCommand": "npm install",
+  "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "https://your-backend-server.com/:path*"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "https://your-backend-server.com/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ],
   "env": {
     "VITE_API_BASE": "http://106.55.203.204:3001"
-  },
-  "github": {
-    "silent": true
   }
 }
