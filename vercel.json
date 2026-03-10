@@ -9,6 +9,6 @@
     }
   ],
   "env": {
-    "VITE_API_BASE": "@api-base-url"
+    "VITE_API_BASE": "http://106.55.203.204:3001"
   }
 }
